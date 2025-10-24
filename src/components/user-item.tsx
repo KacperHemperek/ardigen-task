@@ -5,6 +5,7 @@ import { StarIcon } from "./ui/icons/star";
 import { Link } from "@tanstack/react-router";
 import { GitForkIcon } from "./ui/icons/git-fork";
 import { ArchiveIcon } from "./ui/icons/archive";
+import { Avatar } from "./ui/avatar";
 
 export type UserItemProps = {
   user: UserWithRepos;
@@ -20,7 +21,7 @@ function RepoItem({ repo }: { repo: Repo }) {
           <StarIcon className="w-3 h-3 mr-0.5" /> {repo.stargazersCount} Stars
         </Pill>
         {repo.archived && (
-          <Pill className="border-gray-300 bg-gray-100 text-gray-700">
+          <Pill className="border-rose-300 bg-rose-100 text-rose-700">
             <ArchiveIcon className="w-3 h-3 mr-0.5" />
             Archived
           </Pill>
@@ -37,7 +38,7 @@ function RepoItem({ repo }: { repo: Repo }) {
 }
 
 export function UserItem({ user }: UserItemProps) {
-  const REPOS_SHOWN = 4;
+  const REPOS_SHOWN = 2;
 
   const mostStarredRepos = [...user.repos].sort(
     (a, b) => b.stargazersCount - a.stargazersCount,
@@ -50,11 +51,7 @@ export function UserItem({ user }: UserItemProps) {
       className="no-underline"
     >
       <div className="flex space-x-4 p-2 border-b border-gray-200 rounded-md">
-        <img
-          src={user.avatarUrl}
-          alt={`${user.login}'s profile`}
-          className="w-10 h-10 rounded-full"
-        />
+        <Avatar src={user.avatarUrl} alt={`${user.login}'s avatar`} size="sm" />
         <div className="flex-1">
           <div className="font-semibold pb-1">{user.login}</div>
           <div className="grid grid-cols-1 mt-1 ">

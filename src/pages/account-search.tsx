@@ -6,6 +6,11 @@ import type { UserWithRepos } from "../types/user";
 import { UserItem } from "../components/user-item";
 import { Button } from "../components/ui/button";
 import { indexRoute } from "../router";
+import { CircleMinusIcon } from "../components/ui/icons/circle-minus";
+import { Banner } from "../components/ui/banner";
+import { LoadingIcon } from "../components/ui/icons/loading";
+import { WarnIcon } from "../components/ui/icons/warn";
+import { repoFromResponse, userFromResponse } from "../lib/utils";
 
 const LIMIT = 10;
 
@@ -22,7 +27,7 @@ export function AccountSearch() {
   const [search, setSearch] = React.useState(searchParams.q);
   const deboundceTimeout = React.useRef<Timeout | null>(null);
 
-  const { data, hasNextPage, fetchNextPage, isLoading } =
+  const { data, hasNextPage, fetchNextPage, isLoading, isError } =
     useInfiniteQuery<UserSearchResponse>({
       queryKey: ["accounts", "search", search],
       initialPageParam: 1,
@@ -51,21 +56,8 @@ export function AccountSearch() {
 
         const items: UserWithRepos[] = res.data.items.map((user, index) => {
           return {
-            id: user.id,
-            login: user.login,
-            avatarUrl: user.avatar_url,
-            description: user.bio ?? undefined,
-            websiteUrl: user.blog ?? undefined,
-            location: user.location ?? undefined,
-            repos: reposResults[index].data.map((repo) => ({
-              id: repo.id,
-              name: repo.name,
-              stargazersCount: repo.stargazers_count ?? 0,
-              forksCount: repo.forks_count ?? 0,
-              forked: repo.fork,
-              archived: repo.archived ?? false,
-              description: repo.description ?? undefined,
-            })),
+            ...userFromResponse(user),
+            repos: reposResults[index].data.map(repoFromResponse),
           };
         });
 
@@ -86,6 +78,8 @@ export function AccountSearch() {
     }, 300);
   };
 
+  const isEmpty = !isLoading && data?.pages[0].items.length === 0;
+
   return (
     <>
       <h1 className="text-2xl font-semibold mb-4">GitHub User Search</h1>
@@ -95,6 +89,25 @@ export function AccountSearch() {
         defaultValue={searchParams.q}
         placeholder="Search GitHub users..."
       />
+      {isLoading && (
+        <Banner
+          title="Searching for users"
+          icon={<LoadingIcon className="w-6 h-6 text-gray-700" />}
+        />
+      )}
+      {isEmpty && (
+        <Banner
+          icon={<CircleMinusIcon className="w-6 h-6 text-gray-700" />}
+          title="No users found"
+          subtitle="No users match your search maybe try different username?"
+        />
+      )}
+      {isError && (
+        <Banner
+          title="Something went wrong"
+          icon={<WarnIcon className="w-6 h-6 text-gray-700" />}
+        />
+      )}
       {data?.pages
         .flatMap((page) => page.items)
         .map((user) => <UserItem key={user.id} user={user} />)}

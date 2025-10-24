@@ -7,3 +7,12 @@ export type Repo = {
   archived: boolean;
   description?: string;
 };
+
+export type Language = {
+  name: string;
+  bytes: number;
+};
+
+export type DetailedRepo = Repo & {
+  languages: Language[];
+};
