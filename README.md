@@ -6,7 +6,7 @@ This repo contains the code for the recruitment task for Adrigen.
 
 - Node.js v22.x or higher
 - npm v9.x or higher
-- github token with [permissions]
+- Github's fine-grained personal access token with no additional permissions [how to create one](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-fine-grained-personal-access-token)
 
 ## Setup
 1. Clone the repo:
@@ -32,6 +32,7 @@ npm install
 cp .env.example .env
 ```
 
+5. Open the `.env` file and fill the `VITE_GITHUB_TOKEN` variable with your GitHub personal access token:
 
 ## Usage
 
