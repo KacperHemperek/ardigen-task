@@ -5,7 +5,7 @@ import type { User } from "../types/user";
 import { Avatar } from "../components/ui/avatar";
 import { Banner } from "../components/ui/banner";
 import { LoadingIcon } from "../components/ui/icons/loading";
-import type { DetailedRepo, Language } from "../types/repo";
+import type { DetailedRepo } from "../types/repo";
 import {
   formatBigNumber,
   repoFromResponse,
@@ -143,11 +143,11 @@ export function AccountDetails() {
             />
           </section>
           <section className="grid grid-cols-1 sm:grid-cols-5 gap-4">
-            <div className="col-span-3">
-              <RepoList repos={repos ?? []} username={params.username} />
+            <div className="sm:col-span-3">
+              <RepoList repos={repos} username={params.username} />
             </div>
-            <div className="col-span-2 sm:order-first">
-              <LanguageStats repos={repos ?? []} />
+            <div className="sm:col-span-2 order-first">
+              <LanguageStats repos={repos} />
             </div>
           </section>
         </>

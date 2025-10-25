@@ -95,7 +95,7 @@ export function LanguageStats({ repos }: RepoStatsProps) {
   return (
     <div className="flex flex-col">
       <Heading>Language Stats</Heading>
-      <div className="grid grid-cols-1 gap-2">
+      <div className="grid grid-cols-1 gap-4">
         <LanguageUsageCard
           icon={<LikeIcon />}
           title="Most used"
