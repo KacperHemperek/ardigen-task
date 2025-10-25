@@ -5,6 +5,7 @@ import {
 } from "@tanstack/react-router";
 import { AccountSearch } from "./pages/account-search";
 import { AccountDetails } from "./pages/account-details";
+import { RepoDetails } from "./pages/repo-details";
 import { BaseLayout } from "./pages/layouts/base";
 
 const rootRoute = createRootRoute();
@@ -30,8 +31,18 @@ export const accountDetailsRoute = createRoute({
   component: AccountDetails,
 });
 
+export const repositoryDetailsRoute = createRoute({
+  getParentRoute: () => baseLayout,
+  path: "accounts/$username/repos/$repoName",
+  component: RepoDetails,
+});
+
 const routeTree = rootRoute.addChildren([
-  baseLayout.addChildren([indexRoute, accountDetailsRoute]),
+  baseLayout.addChildren([
+    indexRoute,
+    accountDetailsRoute,
+    repositoryDetailsRoute,
+  ]),
 ]);
 
 export const router = createRouter({

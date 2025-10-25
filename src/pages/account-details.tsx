@@ -6,13 +6,19 @@ import { Avatar } from "../components/ui/avatar";
 import { Banner } from "../components/ui/banner";
 import { LoadingIcon } from "../components/ui/icons/loading";
 import type { DetailedRepo, Language } from "../types/repo";
-import { repoFromResponse, userFromResponse } from "../lib/utils";
+import {
+  formatBigNumber,
+  repoFromResponse,
+  userFromResponse,
+} from "../lib/utils";
 import { GitForkIcon } from "../components/ui/icons/git-fork";
 import { StarIcon } from "../components/ui/icons/star";
 import { GitHubIcon } from "../components/ui/icons/github";
 import { LanguageStats } from "../components/language-stats";
-import { AccountDetailsHeading } from "../components/account-details-heading";
+import { Heading } from "../components/ui/heading";
 import { IconCard } from "../components/ui/icon-card";
+import { RepoList } from "../components/repo-list";
+import { CircleMinusIcon } from "../components/ui/icons/circle-minus";
 
 type UserDetails = User & {
   followers: number;
@@ -35,7 +41,7 @@ export function TotalsCard({
   return (
     <IconCard icon={icon}>
       <div>
-        <h4 className="text-lg font-semibold">{count}</h4>
+        <h4 className="text-lg font-semibold">{formatBigNumber(count)}</h4>
         <p className="text-sm text-gray-700">{label}</p>
         <p className="text-xs text-gray-500">{description}</p>
       </div>
@@ -60,13 +66,14 @@ export function AccountDetails() {
       },
     });
 
-  const { data: repos } = useQuery<DetailedRepo[]>({
+  const { data: repos, isLoading: isLoadingRepos } = useQuery<DetailedRepo[]>({
     queryKey: ["accounts", params.username, "repos"],
     queryFn: async () => {
       if (!user) throw new Error("User is required to fetch repositories");
 
       const res = await api.request("GET /users/{username}/repos", {
         username: user.login,
+        sort: "updated",
       });
       const languagesRequests = res.data.map(async (r) => {
         const languageResponse = await api.request(
@@ -76,11 +83,8 @@ export function AccountDetails() {
             repo: r.name,
           },
         );
-        const languages: Language[] = Object.entries(languageResponse.data).map(
-          ([lang, bytes]) => ({ name: lang, bytes: bytes }),
-        );
 
-        return { ...repoFromResponse(r), languages };
+        return { ...repoFromResponse(r), languages: languageResponse.data };
       });
 
       return await Promise.all(languagesRequests);
@@ -88,7 +92,7 @@ export function AccountDetails() {
     enabled: !!user,
   });
 
-  if (isLoadingBaseUserInfo) {
+  if (isLoadingBaseUserInfo || isLoadingRepos) {
     return (
       <div className="min-h-screen mx-auto flex items-center justify-center">
         <Banner title="Loading user details" icon={<LoadingIcon />} />
@@ -104,7 +108,7 @@ export function AccountDetails() {
 
   return (
     <>
-      <div className="flex items-center mb-6 min-w-0">
+      <header className="flex items-center mb-6 min-w-0">
         <Avatar src={user?.avatarUrl ?? ""} alt={user?.login} size="lg" />
         <div className="flex flex-col pl-4 min-w-0">
           <h1 className="text-xl font-semibold truncate min-w-0">
@@ -114,29 +118,47 @@ export function AccountDetails() {
             {user?.followers} followers · {user?.following} following
           </div>
         </div>
-      </div>
-      <AccountDetailsHeading>Totals</AccountDetailsHeading>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pb-6">
-        <TotalsCard
-          label="Repositories"
-          description="Number of all public user's repositories"
-          count={totals.repos}
-          icon={<GitHubIcon />}
+      </header>
+      {!!repos?.length && (
+        <>
+          <Heading>Totals</Heading>
+          <section className="grid grid-cols-1 sm:grid-cols-3 gap-4 pb-6">
+            <TotalsCard
+              label="Repositories"
+              description="Number of all public user's repositories"
+              count={totals.repos}
+              icon={<GitHubIcon />}
+            />
+            <TotalsCard
+              label="Stars"
+              description="Number of stars across all user's repositories"
+              count={totals.starts}
+              icon={<StarIcon />}
+            />
+            <TotalsCard
+              label="Forks"
+              description="Number of forks across all user's repositories"
+              count={totals.forks}
+              icon={<GitForkIcon />}
+            />
+          </section>
+          <section className="grid grid-cols-1 sm:grid-cols-5 gap-4">
+            <div className="col-span-3">
+              <RepoList repos={repos ?? []} username={params.username} />
+            </div>
+            <div className="col-span-2 sm:order-first">
+              <LanguageStats repos={repos ?? []} />
+            </div>
+          </section>
+        </>
+      )}
+      {!repos?.length && (
+        <Banner
+          icon={<CircleMinusIcon className="w-6 h-6 text-gray-700" />}
+          title="No repositories"
+          subtitle="This user does not have any repositories"
         />
-        <TotalsCard
-          label="Stars"
-          description="Number of stars across all user's repositories"
-          count={totals.starts}
-          icon={<StarIcon />}
-        />
-        <TotalsCard
-          label="Forks"
-          description="Number of forks across all user's repositories"
-          count={totals.forks}
-          icon={<GitForkIcon />}
-        />
-      </div>
-      <LanguageStats repos={repos ?? []} />
+      )}
     </>
   );
 }

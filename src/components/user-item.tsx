@@ -50,7 +50,7 @@ export function UserItem({ user }: UserItemProps) {
       params={{ username: user.login }}
       className="no-underline"
     >
-      <div className="flex space-x-4 p-2 border-b border-gray-200 rounded-md">
+      <div className="flex space-x-4 p-2 border-b border-gray-200">
         <Avatar src={user.avatarUrl} alt={`${user.login}'s avatar`} size="sm" />
         <div className="flex-1">
           <div className="font-semibold pb-1">{user.login}</div>
