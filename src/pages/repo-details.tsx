@@ -32,6 +32,22 @@ import { DotsIcon } from "../components/ui/icons/dots";
 
 const DEFAULT_BRANCH_LIMIT = 5;
 
+function LoaderWrapper({
+  children,
+  size = "sm",
+}: React.PropsWithChildren<{ size?: "sm" | "lg" }>) {
+  return (
+    <div
+      className={cn(
+        "flex items-center",
+        size === "sm" ? "min-h-64" : "min-h-80",
+      )}
+    >
+      {children}
+    </div>
+  );
+}
+
 function getAllPagesForPagination(response: OctokitResponse<any>) {
   const allRequests = [];
   const linkHeader = response.headers.link;
@@ -245,11 +261,7 @@ export function RepoDetails() {
       .filter((branchName) => branchName !== repoDetails.defaultBranch)
       .slice(0, branchLimit - 1) || [];
 
-  if (
-    isLoadingCommits ||
-    isLoadingRepoDetails ||
-    isLoadingLatestDetailedCommits
-  ) {
+  if (isLoadingRepoDetails) {
     return (
       <div className="flex items-center min-h-svh">
         <Banner title="Loading repository details" icon={<LoadingIcon />} />
@@ -335,7 +347,7 @@ export function RepoDetails() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <section>
           <Heading>Latest Commits</Heading>
-          {latestDetailedCommits && (
+          {!isLoadingLatestDetailedCommits && latestDetailedCommits && (
             <ul>
               {latestDetailedCommits.slice(0, 5).map((commit) => (
                 <li
@@ -363,10 +375,24 @@ export function RepoDetails() {
               ))}
             </ul>
           )}
+          {(isLoadingCommits || isLoadingLatestDetailedCommits) && (
+            <LoaderWrapper>
+              <Banner icon={<LoadingIcon />} title="Loading latest commits" />
+            </LoaderWrapper>
+          )}
         </section>
         <section>
           <Heading>Monthly Activity</Heading>
-          {!montlhyActivityData.length && (
+
+          {isLoadingCommits && (
+            <LoaderWrapper>
+              <Banner
+                icon={<LoadingIcon />}
+                title="Loading monthly activity data"
+              />
+            </LoaderWrapper>
+          )}
+          {!montlhyActivityData.length && !isLoadingCommits && (
             <Banner
               icon={<CircleMinusIcon />}
               title="No activity found"
@@ -391,10 +417,9 @@ export function RepoDetails() {
                 <Tooltip />
                 <Line
                   dataKey="commitCount"
-                  type="monotone"
+                  type="linear"
                   fill={colors.sky[500]}
                   activeDot={false}
-                  dot={false}
                 />
               </LineChart>
             </div>
@@ -402,7 +427,12 @@ export function RepoDetails() {
         </section>
         <section>
           <Heading>Top Contributors</Heading>
-          {!mostActiveContributors.length && (
+          {isLoadingCommits && (
+            <LoaderWrapper size="lg">
+              <Banner icon={<LoadingIcon />} title="Loading top contributors" />
+            </LoaderWrapper>
+          )}
+          {!mostActiveContributors.length && !isLoadingCommits && (
             <Banner
               icon={<CircleMinusIcon />}
               title="No contributors found"
