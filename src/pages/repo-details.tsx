@@ -285,7 +285,7 @@ export function RepoDetails() {
           >
             <GitHubIcon className="w-4 h-4 text-gray-500" />
           </a>
-          {formatBigNumber(repoDetails.stargazersCount ?? 0)}{" "}
+          {formatBigNumber(repoDetails.stargazersCount)}{" "}
           <StarIcon className="ml-2 w-4 h-4" />
         </div>
       </header>
@@ -297,7 +297,7 @@ export function RepoDetails() {
           : "N/A"}
       </p>
       <p className="mb-4">{repoDetails.description}</p>
-      <RepoTags repo={repoDetails} className="mb-4" />
+      <RepoTags repo={repoDetails} />
       <LanguageLineGraph
         languages={repoDetails.languages}
         className="mb-4 max-w-sm"
