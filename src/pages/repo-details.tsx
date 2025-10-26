@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/react-query";
-import type { OctokitResponse } from "@octokit/types";
 import colors from "tailwindcss/colors";
 import { repositoryDetailsRoute } from "../router";
 import { api } from "../api";
@@ -8,6 +7,7 @@ import {
   cn,
   commitFromResponse,
   formatBigNumber,
+  getAllPagesForPagination,
   repoFromResponse,
 } from "../lib/utils";
 import { Button } from "../components/ui/button";
@@ -46,27 +46,6 @@ function LoaderWrapper({
       {children}
     </div>
   );
-}
-
-function getAllPagesForPagination(response: OctokitResponse<any>) {
-  const allRequests = [];
-  const linkHeader = response.headers.link;
-  if (linkHeader) {
-    const pages = linkHeader
-      .split(",")
-      .map((part) => {
-        const [url] = part.split(";");
-        const urlObject = new URL(url.trim().slice(1, -1));
-        return Number(urlObject.searchParams.get("page"));
-      })
-      .filter((v) => !isNaN(v));
-
-    const totalPages = Math.max(...pages);
-    for (let page = 2; page <= totalPages; page++) {
-      allRequests.push(page);
-    }
-  }
-  return allRequests;
 }
 
 function formatDate(date: Date) {

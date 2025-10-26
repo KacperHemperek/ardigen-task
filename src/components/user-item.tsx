@@ -1,49 +1,47 @@
-import type { UserWithRepos } from "../types/user";
+import type { UserWithRepos } from "../types/repo";
 import type { Repo } from "../types/repo";
-import { Pill } from "./ui/pill";
-import { StarIcon } from "./ui/icons/star";
 import { Link } from "@tanstack/react-router";
-import { GitForkIcon } from "./ui/icons/git-fork";
-import { ArchiveIcon } from "./ui/icons/archive";
 import { Avatar } from "./ui/avatar";
+import { RepoTags } from "./repo-tags";
+import { StarIcon } from "./ui/icons/star";
+import { cn } from "../lib/utils";
 
 export type UserItemProps = {
   user: UserWithRepos;
+  reposLeft?: number;
 };
 
 function RepoItem({ repo }: { repo: Repo }) {
   return (
-    <div className="flex flex-col mr-2 mb-1 ">
-      <h5 className="text-sm truncate">{repo.name}</h5>
-      <p className="text-xs text-gray-500 pb-1">{repo.description}</p>
-      <div className="flex flex-wrap gap-1">
-        <Pill className="border-yellow-300 bg-yellow-100 text-yellow-700">
-          <StarIcon className="w-3 h-3 mr-0.5" /> {repo.stargazersCount} Stars
-        </Pill>
-        {repo.archived && (
-          <Pill className="border-rose-300 bg-rose-100 text-rose-700">
-            <ArchiveIcon className="w-3 h-3 mr-0.5" />
-            Archived
-          </Pill>
-        )}
-        {repo.forked && (
-          <Pill className="border-blue-300 bg-blue-100 text-blue-700">
-            <GitForkIcon className="w-3 h-3 mr-0.5" />
-            Forked
-          </Pill>
-        )}
+    <div className="flex flex-col mr-2 mb-1 border-b border-gray-200 pb-1 nth-last-[2]:border-0 nth-last-[2]:pb-0">
+      <div className="flex items-center justify-between min-w-0">
+        <h5 className="text-sm truncate">{repo.name}</h5>
+        <div className="flex items-center text-xs text-yellow-500 pl-1">
+          {repo.stargazersCount} <StarIcon className="ml-2 w-4 h-4" />
+        </div>
       </div>
+      <p
+        className={cn(
+          "text-xs pb-1",
+          !!repo.description ? "text-gray-600" : "text-gray-400 italic",
+        )}
+      >
+        {repo.description ?? "No description"}
+      </p>
+      <p
+        className={cn(
+          "text-xs text-gray-600 pb-2",
+          !repo.mainLanguage && "italic text-gray-400",
+        )}
+      >
+        {repo.mainLanguage ?? "No language"}{" "}
+      </p>
+      <RepoTags repo={repo} />
     </div>
   );
 }
 
-export function UserItem({ user }: UserItemProps) {
-  const REPOS_SHOWN = 2;
-
-  const mostStarredRepos = [...user.repos].sort(
-    (a, b) => b.stargazersCount - a.stargazersCount,
-  );
-
+export function UserItem({ user, reposLeft }: UserItemProps) {
   return (
     <Link
       to="/accounts/$username"
@@ -55,12 +53,12 @@ export function UserItem({ user }: UserItemProps) {
         <div className="flex-1">
           <div className="font-semibold pb-1">{user.login}</div>
           <div className="grid grid-cols-1 mt-1 ">
-            {mostStarredRepos.slice(0, REPOS_SHOWN).map((repo) => (
+            {user.repos.map((repo) => (
               <RepoItem key={repo.id} repo={repo} />
             ))}
-            {user.repos.length > 3 && (
-              <div className="text-xs text-gray-500 mt-1">
-                and {user.repos.length - REPOS_SHOWN} more repositories...
+            {reposLeft !== undefined && reposLeft > 0 && (
+              <div className="text-xs text-gray-500">
+                and {reposLeft} more repositories...
               </div>
             )}
           </div>

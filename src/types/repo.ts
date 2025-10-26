@@ -9,6 +9,7 @@ export type Repo = {
   archived: boolean;
   defaultBranch: string;
   openIssuesCount: number;
+  mainLanguage?: string;
   description?: string;
 };
 

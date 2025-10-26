@@ -1,12 +1,12 @@
 import { isLowIssueCount } from "../lib/stats";
-import type { DetailedRepo } from "../types/repo";
+import type { Repo } from "../types/repo";
 import { ArchiveIcon } from "./ui/icons/archive";
 import { BugFreeIcon } from "./ui/icons/bug-free";
 import { GitBranchIcon } from "./ui/icons/git-branch-icon";
 import { GitForkIcon } from "./ui/icons/git-fork";
 import { Pill } from "./ui/pill";
 
-export function RepoTags({ repo }: { repo: DetailedRepo }) {
+export function RepoTags({ repo }: { repo: Repo }) {
   return (
     <div className="flex gap-2 mb-2">
       <Pill className="border-fuchsia-300 bg-fuchsia-100 text-fuchsia-700">

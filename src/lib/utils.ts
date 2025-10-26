@@ -1,8 +1,8 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import type { OctokitResponse } from "@octokit/types";
 import type { Commit, Repo } from "../types/repo";
 import numeral from "numeral";
-import type { User } from "../types/user";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -30,6 +30,7 @@ export function repoFromResponse(res: unknown): Repo {
     description: (res as any).description ?? undefined,
     defaultBranch: (res as any).default_branch,
     openIssuesCount: (res as any).open_issues_count ?? 0,
+    mainLanguage: (res as any).language ?? undefined,
   };
 }
 
@@ -81,4 +82,43 @@ export function commitFromResponse(res: unknown): Commit {
  */
 export function formatBigNumber(n: number): string {
   return numeral(n).format("0.[0]a");
+}
+
+/** Extracts the total number of pages from the Link header of a GitHub API response for pagination.
+ *
+ * @param response - The OctokitResponse object containing the headers.
+ * @returns The total number of pages available for pagination.
+ */
+export function getTotalNumberOfPages(response: OctokitResponse<any>): number {
+  const linkHeader = response.headers.link;
+
+  if (linkHeader) {
+    const pages = linkHeader
+      .split(",")
+      .map((part) => {
+        const [url] = part.split(";");
+        const urlObject = new URL(url.trim().slice(1, -1));
+        return Number(urlObject.searchParams.get("page"));
+      })
+      .filter((v) => !isNaN(v));
+
+    return Math.max(...pages);
+  }
+
+  return 0;
+}
+
+/**
+ * Extracts all page numbers from the Link header of a GitHub API response for pagination.
+ *
+ * @param response - The OctokitResponse object containing the headers.
+ * @returns An array of page numbers available for pagination.
+ */
+export function getAllPagesForPagination(response: OctokitResponse<any>) {
+  const allRequests = [];
+  const totalPages = getTotalNumberOfPages(response);
+  for (let page = 2; page <= totalPages; page++) {
+    allRequests.push(page);
+  }
+  return allRequests;
 }

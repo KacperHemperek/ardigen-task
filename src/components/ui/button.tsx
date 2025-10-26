@@ -13,7 +13,7 @@ export function Button({
   return (
     <button
       className={cn(
-        "px-3 py-1 border border-gray-300 bg-gray-100 active:bg-gray-100 transition-colors rounded-md text-sm disabled:opacity-75 cursor-pointer",
+        "px-3 py-1 border border-gray-300 bg-gray-100 active:bg-gray-100 transition-colors rounded-md text-sm disabled:opacity-75 cursor-pointer disabled:cursor-not-allowed hover:bg-gray-200",
         square && "aspect-square px-1 flex items-center justify-center",
         className,
       )}

@@ -2,7 +2,7 @@ import React from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { api } from "../api";
 import type { Timeout } from "../types/utils";
-import type { UserWithRepos } from "../types/user";
+import type { UserWithRepos } from "../types/repo";
 import { UserItem } from "../components/user-item";
 import { Button } from "../components/ui/button";
 import { indexRoute } from "../router";
@@ -10,13 +10,20 @@ import { CircleMinusIcon } from "../components/ui/icons/circle-minus";
 import { Banner } from "../components/ui/banner";
 import { LoadingIcon } from "../components/ui/icons/loading";
 import { WarnIcon } from "../components/ui/icons/warn";
-import { repoFromResponse, userFromResponse } from "../lib/utils";
+import {
+  getTotalNumberOfPages,
+  repoFromResponse,
+  userFromResponse,
+} from "../lib/utils";
 
-const LIMIT = 10;
+const SEARCH_LIMIT = 10;
+const REPO_PREVIEW_LIMIT = 2;
+
+type UserWithReposCount = UserWithRepos & { totalRepoCount: number };
 
 type UserSearchResponse = {
   totalCount: number;
-  items: UserWithRepos[];
+  items: UserWithReposCount[];
   page: number;
 };
 
@@ -27,44 +34,61 @@ export function AccountSearch() {
   const [search, setSearch] = React.useState(searchParams.q);
   const deboundceTimeout = React.useRef<Timeout | null>(null);
 
-  const { data, hasNextPage, fetchNextPage, isLoading, isError } =
-    useInfiniteQuery<UserSearchResponse>({
-      queryKey: ["accounts", "search", search],
-      initialPageParam: 1,
-      getNextPageParam: (lastPage) => {
-        return lastPage.totalCount > LIMIT * lastPage.page
-          ? lastPage.page + 1
-          : undefined;
-      },
-      queryFn: async ({ pageParam }) => {
-        if (typeof pageParam !== "number")
-          throw new Error("Invalid page parameter");
+  const {
+    data,
+    hasNextPage,
+    fetchNextPage,
+    isLoading,
+    isError,
+    isFetchingNextPage,
+    ...rest
+  } = useInfiniteQuery<UserSearchResponse>({
+    queryKey: ["accounts", "search", search],
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      return lastPage.totalCount > SEARCH_LIMIT * lastPage.page
+        ? lastPage.page + 1
+        : undefined;
+    },
+    queryFn: async ({ pageParam }) => {
+      if (typeof pageParam !== "number")
+        throw new Error("Invalid page parameter");
 
-        const res = await api.rest.search.users({
-          q: search,
-          per_page: LIMIT,
-          page: pageParam,
+      const res = await api.rest.search.users({
+        q: search,
+        per_page: SEARCH_LIMIT,
+        page: pageParam,
+      });
+
+      const respositoryRequests = res.data.items.map((user) => {
+        return api.request("GET /users/{username}/repos", {
+          username: user.login,
+          per_page: REPO_PREVIEW_LIMIT,
+          page: 1,
+          sort: "updated",
         });
+      });
 
-        const respositoryRequests = res.data.items.map((user) => {
-          return api.request("GET /users/{username}/repos", {
-            username: user.login,
-          });
-        });
+      const reposResults = await Promise.all(respositoryRequests);
 
-        const reposResults = await Promise.all(respositoryRequests);
+      const items: UserWithReposCount[] = res.data.items.map((user, index) => {
+        const repos = reposResults[index];
+        let reposLeft = 0;
+        if (repos.data.length > 0) {
+          const totalPages = getTotalNumberOfPages(repos);
+          reposLeft = totalPages * REPO_PREVIEW_LIMIT;
+        }
+        return {
+          ...userFromResponse(user),
+          repos: reposResults[index].data.map(repoFromResponse),
+          totalRepoCount: reposLeft,
+        };
+      });
 
-        const items: UserWithRepos[] = res.data.items.map((user, index) => {
-          return {
-            ...userFromResponse(user),
-            repos: reposResults[index].data.map(repoFromResponse),
-          };
-        });
-
-        return { items, page: pageParam, totalCount: res.data.total_count };
-      },
-      enabled: search.length >= 3,
-    });
+      return { items, page: pageParam, totalCount: res.data.total_count };
+    },
+    enabled: search.length >= 3,
+  });
 
   const debouncedSearch: React.ChangeEventHandler<HTMLInputElement> = (e) => {
     if (deboundceTimeout.current) {
@@ -110,14 +134,21 @@ export function AccountSearch() {
       )}
       {data?.pages
         .flatMap((page) => page.items)
-        .map((user) => <UserItem key={user.id} user={user} />)}
+        .map((user) => (
+          <UserItem
+            key={user.id}
+            reposLeft={user.totalRepoCount - REPO_PREVIEW_LIMIT}
+            user={user}
+          />
+        ))}
       {hasNextPage && (
         <Button
-          disabled={isLoading}
-          className="max-w-fit mx-auto mt-4"
+          disabled={isFetchingNextPage}
+          className="max-w-fit mx-auto mt-4 flex items-center"
           type="button"
           onClick={() => fetchNextPage()}
         >
+          {isFetchingNextPage ? <LoadingIcon className="w-4 h-4 mr-2" /> : null}
           Load More
         </Button>
       )}
