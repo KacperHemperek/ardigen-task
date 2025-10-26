@@ -12,8 +12,9 @@ This repo contains the code for the recruitment task for Adrigen.
 1. Clone the repo:
 
 ```bash
-git clone repo_url
+git clone git@github.com:KacperHemperek/ardigen-task.git
 ```
+
 2. Navigate to the project directory:
 
 ```bash
@@ -45,5 +46,5 @@ npm run dev
 Or you can also preview the production build with:
 
 ```bash
-npm run preview
+npm run build && npm run preview
 ```
