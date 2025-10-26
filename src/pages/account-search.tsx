@@ -41,7 +41,6 @@ export function AccountSearch() {
     isLoading,
     isError,
     isFetchingNextPage,
-    ...rest
   } = useInfiniteQuery<UserSearchResponse>({
     queryKey: ["accounts", "search", search],
     initialPageParam: 1,

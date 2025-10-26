@@ -1,11 +1,7 @@
 import React from "react";
 import { Cell, Pie, PieChart, type PieLabelRenderProps } from "recharts";
-import {
-  filterLowUsageLanguages,
-  getLangColor,
-  getTotalBytes,
-} from "../lib/stats";
-import type { DetailedRepo, Language } from "../types/repo";
+import { filterLowUsageLanguages, getLangColor } from "../lib/stats";
+import type { DetailedRepo } from "../types/repo";
 import { Heading } from "./ui/heading";
 import { IconCard } from "./ui/icon-card";
 import { formatBigNumber } from "../lib/utils";
