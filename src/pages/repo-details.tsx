@@ -263,7 +263,7 @@ export function RepoDetails() {
       <header className="flex min-w-0 mb-1 items-center justify-between">
         <h1
           className="text-2xl font-bold truncate min-w-0"
-          title={repoDetails.name}
+          title={params.username + "/" + repoDetails.name}
         >
           {repoDetails.name}
         </h1>
@@ -287,7 +287,14 @@ export function RepoDetails() {
           ? formatDate(commits?.[0]?.commitedAt)
           : "N/A"}
       </p>
-      <p className="mb-4">{repoDetails.description}</p>
+      <p
+        className={cn(
+          "mb-4",
+          !repoDetails.description && "text-gray-400 italic",
+        )}
+      >
+        {repoDetails.description ?? "No description"}
+      </p>
       <RepoTags repo={repoDetails} />
       <LanguageLineGraph
         languages={repoDetails.languages}
@@ -302,7 +309,7 @@ export function RepoDetails() {
           <Button
             className={cn(
               selectedBranchName === branchName &&
-                "bg-sky-500 text-gray-50 border-sky-500",
+                "bg-sky-500 text-gray-50 border-sky-500 hover:bg-sky-600 hover:border-sky-600",
             )}
             onClick={() => setBranchName(branchName)}
             key={branchName}
